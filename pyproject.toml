@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "deepthermomix"
+version = "0.1.0"
+description = "Deep Thermodynamic Mixing Package"
+requires-python = "==3.11.*"
+dependencies = ["optuna", "optuna-dashboard"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = false

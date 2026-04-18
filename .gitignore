@@ -1,0 +1,9 @@
+__pycache__/
+*.egg-info/
+*.py[cod]
+outputs/
+application/aspen/aspen_bkp_files/*
+application/aspen/aspen_bkp_files/ternary_analysis/*
+!application/aspen/aspen_bkp_files/**/
+!application/aspen/aspen_bkp_files/**/*.bkp
+model_weights/training_logs
