@@ -29,7 +29,7 @@ def parse_args():
                         help='Directory containing the .pt model files')
     
     parser.add_argument('--constraint_type', type=str, default='soft', choices=['soft', 'hard', 'none'])
-    parser.add_argument('--components_csv', type=str, default='development/datasets/components.csv')
+    parser.add_argument('--components_csv', type=str, default='development/datasets/component_set_unified.csv')
     parser.add_argument('--dataset_csv', type=str, required=True, help='Path to dataset (e.g., all_data.csv)')
     
     parser.add_argument('--split_type', type=str, default='system', choices=['system', 'random', 'none'],

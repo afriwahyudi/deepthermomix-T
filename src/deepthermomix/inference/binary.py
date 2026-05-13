@@ -26,7 +26,7 @@ class VLEAnalyzer:
                         can_smi = Chem.MolToSmiles(mol, isomericSmiles=True)
                         self.smiles_map[can_smi] = name
 
-    def _prepare_single_point(self, smiles_list, mole_fracs):
+    def _prepare_single_point(self, smiles_list, mole_fracs, temperature):
         node_features_list = []
         edge_index_list = []
         edge_attr_list = []
@@ -58,7 +58,8 @@ class VLEAnalyzer:
         data = Data(
             x=x, edge_index=edge_index, edge_attr=edge_attr, mol_batch=mol_batch,
             component_batch_batch=torch.zeros(num_comps, dtype=torch.long),
-            component_mole_frac=torch.tensor(mole_fracs, dtype=torch.float)
+            component_mole_frac=torch.tensor(mole_fracs, dtype=torch.float),
+            temperature=torch.tensor([temperature], dtype=torch.float)
         )
         return data.to(self.device)
 
@@ -84,7 +85,7 @@ class VLEAnalyzer:
         for x1 in x1_range:
             x2 = 1.0 - x1
             
-            data = self._prepare_single_point([smiles1, smiles2], [x1, x2])
+            data = self._prepare_single_point([smiles1, smiles2], [x1, x2], T_kelvin)
             ln_gamma_pred, _, _ = self.model(data)
             
             ln_gamma1 = ln_gamma_pred[0].item()

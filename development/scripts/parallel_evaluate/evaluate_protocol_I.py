@@ -9,9 +9,9 @@ if project_root not in sys.path:
 
 constraints = ['hard', 'soft', 'none']
 tests = [
-    ('ternary_only/all_ternary.csv', 'ternary_test'),
-    ('binary_only/aci_set1.csv', 'infinite_dilution_set1'),
-    ('binary_only/aci_set2.csv', 'infinite_dilution_set2'),
+    ('non_isothermal/ternary/kdb_ternary.csv', 'kdb_ternary'),
+    ('non_isothermal/ternary/cosmo_ternary.csv', 'cosmo_ternary'),
+    ('non_isothermal/binary/aci_set2.csv', 'aci'),
 ]
 
 runs = []
@@ -20,7 +20,7 @@ for dataset, output in tests:
         runs.append([
             '--model_dir', f'model_weights/protocol_I/{constraint}_constraint',
             '--constraint_type', constraint,
-            '--components_csv', 'development/datasets/components.csv',
+            '--components_csv', 'development/datasets/component_set_unified.csv',
             '--dataset_csv', f'development/datasets/{dataset}',
             '--output_dir', f'outputs/evaluation/protocol_I/{output}',
             '--batch_size', '100',

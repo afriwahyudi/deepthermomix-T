@@ -109,7 +109,7 @@ class AspenTernary:
 
             for i, (x, y, z) in enumerate(tqdm(mole_fracs, desc="Processing points", unit="pt")):
 
-                if i > 0 and i % 300 == 0:
+                if i > 0 and i % 200 == 0:
                     aspen.Close()
                     time.sleep(1)
                     kill_all_aspen_processes()
@@ -228,24 +228,24 @@ if __name__ == "__main__":
         ternary = AspenTernary()
 
         systems = [
-            ("ETHANOL", "BENZENE", "CYCLOHEXANE")
+            ("CHLOROFORM", "ACETONE", "METHANOL")
         ]
 
-        method = "unifac"
+        method = "cosmosac"
         method_map = {
-            "cosmosac": "COSMO-SAC",
-            "nrtl": "NRTL",
-            "unifac": "UNIFAC",
-            "uniquac": "UNIQUAC",
-            "wilson": "Wilson",
+            "cosmosac"  : "COSMO-SAC",
+            "nrtl"      : "NRTL",
+            "unifac"    : "UNIFAC",
+            "uniquac"   : "UNIQUAC",
+            "wilson"    : "Wilson",
         }
 
         method_label = method_map.get(method, method.upper())
 
         stream_name = "FEED"
-        temperature = 298.15
+        temperatures = [398.15]
         pressure = 1.013
-        steps = 5
+        steps = 61
 
         ternary_dir = "application/aspen/aspen_bkp_files/ternary_analysis/"
         base_bkp = os.path.abspath(os.path.join(parent_dir, f"application/aspen/aspen_bkp_files/ternary_analysis/tern_{method}.bkp"))
@@ -258,60 +258,61 @@ if __name__ == "__main__":
         os.makedirs(fig_dir, exist_ok=True)
 
         for comp1, comp2, comp3 in systems:
-            try:
-                comps = [comp1, comp2, comp3]
-                print(f"Running {comp1}/{comp2}/{comp3}...")
+            for temperature in temperatures:
+                try:
+                    comps = [comp1, comp2, comp3]
+                    print(f"Running {comp1}/{comp2}/{comp3} at {temperature} K...")
 
-                df = ternary.get_ternary_data(
-                    comps, base_bkp, stream_name, steps, temperature, pressure
-                )
+                    df = ternary.get_ternary_data(
+                        comps, base_bkp, stream_name, steps, temperature, pressure
+                    )
 
-                csv_path = os.path.join(csv_dir, f"{comp1}_{comp2}_{comp3}_ternary.csv")
-                df.to_csv(csv_path, index=False)
+                    csv_path = os.path.join(csv_dir, f"{comp1}_{comp2}_{comp3}_{temperature}K_ternary.csv")
+                    df.to_csv(csv_path, index=False)
 
-                if mpltern:
-                    plt.rcParams.update({
-                        "font.family": "serif",
-                        "font.serif": ["Times New Roman"],
-                        "mathtext.fontset": "stix",
-                        "font.size": 14
-                    })
-                    t, l, r = df["x1"], df["x2"], df["x3"]
-                    g_excess = df["g_excess_reduced"]
-                    g_mix = df["g_mix_reduced"]
+                    if mpltern:
+                        plt.rcParams.update({
+                            "font.family": "serif",
+                            "font.serif": ["Times New Roman"],
+                            "mathtext.fontset": "stix",
+                            "font.size": 14
+                        })
+                        t, l, r = df["x1"], df["x2"], df["x3"]
+                        g_excess = df["g_excess_reduced"]
+                        g_mix    = df["g_mix_reduced"]
 
-                    fig = plt.figure(figsize=(18, 8))
+                        fig = plt.figure(figsize=(18, 8))
 
-                    def setup_ternary(ax, t, l, r, data, names, cbar_label):
-                        ax.grid(color='gray', linestyle='--', linewidth=0.5, alpha=0.4)
-                        cntr = ax.tricontourf(t, l, r, data, levels=30, cmap='RdBu_r')
-                        ax.tricontour(t, l, r, data, levels=30, colors='k', linewidths=0.3, alpha=0.5)
-                        off = 0.10  
-                        ax.text(-off, 0.5 + off/2, 0.5 + off/2, names[0], 
-                                fontsize=12, ha='center', va='top', rotation=0)
-                        ax.text(0.5 + off/2, 0.5 + off/2, -off, names[1], 
-                                fontsize=12, ha='center', va='bottom', rotation=60)
-                        ax.text(0.5 + off/2, -off, 0.5 + off/2, names[2], 
-                                fontsize=12, ha='center', va='bottom', rotation=-60)
-                        cbar = plt.colorbar(cntr, ax=ax, shrink=0.7, pad=0.1)
-                        cbar.set_label(cbar_label, rotation=270, labelpad=20)
+                        def setup_ternary(ax, t, l, r, data, names, cbar_label):
+                            ax.grid(color='gray', linestyle='--', linewidth=0.5, alpha=0.4)
+                            cntr = ax.tricontourf(t, l, r, data, levels=30, cmap='RdBu_r')
+                            ax.tricontour(t, l, r, data, levels=30, colors='k', linewidths=0.3, alpha=0.5)
+                            off = 0.10
+                            ax.text(-off, 0.5 + off/2, 0.5 + off/2, names[0],
+                                    fontsize=12, ha='center', va='top', rotation=0)
+                            ax.text(0.5 + off/2, 0.5 + off/2, -off, names[1],
+                                    fontsize=12, ha='center', va='bottom', rotation=60)
+                            ax.text(0.5 + off/2, -off, 0.5 + off/2, names[2],
+                                    fontsize=12, ha='center', va='bottom', rotation=-60)
+                            cbar = plt.colorbar(cntr, ax=ax, shrink=0.7, pad=0.1)
+                            cbar.set_label(cbar_label, rotation=270, labelpad=20)
 
-                    ax1 = fig.add_subplot(121, projection="ternary")
-                    setup_ternary(ax1, t, l, r, g_excess, comps, 'Excess Gibbs Energy ( $g^E / RT$ )')
+                        ax1 = fig.add_subplot(121, projection="ternary")
+                        setup_ternary(ax1, t, l, r, g_excess, comps, 'Excess Gibbs Energy ( $g^E / RT$ )')
 
-                    ax2 = fig.add_subplot(122, projection="ternary")
-                    setup_ternary(ax2, t, l, r, g_mix, comps, 'Gibbs Energy of Mixing ( $\Delta_{mix}g / RT$ )')
+                        ax2 = fig.add_subplot(122, projection="ternary")
+                        setup_ternary(ax2, t, l, r, g_mix, comps, 'Gibbs Energy of Mixing ( $\\Delta_{mix}g / RT$ )')
 
-                    plt.suptitle(f"{comp1} / {comp2} / {comp3} ({method_label})", y=0.95)
+                        plt.suptitle(f"{comp1} / {comp2} / {comp3} ({method_label}) at {temperature} K", y=0.95)
 
-                    fig_path = os.path.join(fig_dir, f"{comp1}_{comp2}_{comp3}_plots.png")
-                    plt.savefig(fig_path, dpi=300, bbox_inches="tight")
-                    plt.close(fig)
+                        fig_path = os.path.join(fig_dir, f"{comp1}_{comp2}_{comp3}_{temperature}K_plots.png")
+                        plt.savefig(fig_path, dpi=300, bbox_inches="tight")
+                        plt.close(fig)
 
-            except Exception as e:
-                print(f"Error in {comp1}/{comp2}/{comp3}: {e}")
-                import traceback
-                traceback.print_exc()
+                except Exception as e:
+                    print(f"Error in {comp1}/{comp2}/{comp3} at {temperature} K: {e}")
+                    import traceback
+                    traceback.print_exc()
 
         total = time.time() - overall_start
         print(f"Total execution time: {total:.2f} s")

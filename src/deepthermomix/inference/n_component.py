@@ -40,7 +40,7 @@ class MultiComponentAnalyzer:
             
         return smiles
 
-    def _prepare_batch_N(self, smiles_list, mole_fracs_batch):
+    def _prepare_batch_N(self, smiles_list, mole_fracs_batch, temperature):
         num_comps = len(smiles_list)
         batch_size = len(mole_fracs_batch)
         
@@ -99,11 +99,12 @@ class MultiComponentAnalyzer:
             edge_attr=edge_attr_final,
             mol_batch=mol_batch_final,
             component_batch_batch=component_batch_batch,
-            component_mole_frac=component_mole_frac
+            component_mole_frac=component_mole_frac,
+            temperature=torch.tensor([temperature] * batch_size, dtype=torch.float, device=self.device)
         )
         return data
 
-    def scan_composition(self, smiles_list, target_idx=0, steps=50):
+    def scan_composition(self, smiles_list, target_idx=0, temperature=298.15, steps=50):
         num_comps = len(smiles_list)
         x_range = np.linspace(0, 1, steps)
         mole_fracs_list = []
@@ -126,7 +127,7 @@ class MultiComponentAnalyzer:
 
         mole_fracs_batch = np.array(mole_fracs_list)
 
-        data = self._prepare_batch_N(smiles_list, mole_fracs_batch)
+        data = self._prepare_batch_N(smiles_list, mole_fracs_batch, temperature)
         
         ln_gamma_flat, _, _ = self.model(data)
         
@@ -135,8 +136,8 @@ class MultiComponentAnalyzer:
 
         return x_range, gamma, ln_gamma
 
-    def plot_sweep(self, smiles_list, target_idx=0, steps=50, save_path=None, custom_names=None):
-        x_axis, gamma, ln_gamma = self.scan_composition(smiles_list, target_idx, steps)
+    def plot_sweep(self, smiles_list, target_idx=0, temperature=298.15, steps=50, save_path=None, custom_names=None):
+        x_axis, gamma, ln_gamma = self.scan_composition(smiles_list, target_idx, temperature, steps)
         
         names = []
         if custom_names and len(custom_names) == len(smiles_list):
@@ -164,7 +165,7 @@ class MultiComponentAnalyzer:
             
         ax[1].set_xlabel(f'mol frac, {target_name}', fontsize=12)
         ax[1].set_ylabel('ln Activity Coefficient ($\ln \gamma$)', fontsize=12)
-        ax[1].set_title(f'Log Activity Coefficients\n(Varying {target_name}, others equimolar)', fontsize=14)
+        ax[1].set_title(f'Log Activity Coefficients\n(Varying {target_name}, others equimolar) at {temperature} K', fontsize=14)
         ax[1].legend()
         ax[1].grid(True, alpha=0.3)
         ax[1].set_xlim(0, 1)

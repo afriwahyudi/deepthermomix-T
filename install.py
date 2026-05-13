@@ -87,5 +87,7 @@ def main():
     print(f"\nINSTALLATION COMPLETE! Environment: {env_name}")
     print(f"to start:  conda activate {env_name}")
 
+# SWITCHING ISOTHERMAL/NON-ISOTHERMAL mode:
+# pip install -e "D:\aw_workspace\main_project\deepthermomix-T" or pip install -e "D:\aw_workspace\main_project\deepthermomix"
 if __name__ == "__main__":
     main()

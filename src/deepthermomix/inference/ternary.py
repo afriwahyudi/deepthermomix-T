@@ -76,7 +76,7 @@ class TernaryAnalyzer:
         arr_unique = np.unique(np.round(arr, decimals=10), axis=0)
         return arr_unique
 
-    def predict_ternary_surface(self, smiles_list, steps=60):
+    def predict_ternary_surface(self, smiles_list, temperature, steps=60):
         if len(smiles_list) != 3:
             raise ValueError("Must provide exactly 3 SMILES strings.")
 
@@ -112,7 +112,8 @@ class TernaryAnalyzer:
                 edge_attr=batch_attr_full,
                 mol_batch=batch_mol_batch_full,
                 component_batch_batch=comp_batch_batch,
-                component_mole_frac=comp_mole_frac_flat
+                component_mole_frac=comp_mole_frac_flat,
+                temperature=torch.full((curr_batch_size,), temperature, dtype=torch.float, device=self.device)
                 )
             
             ln_gamma_pred, _, _ = self.model(data)
@@ -144,14 +145,14 @@ class TernaryAnalyzer:
         
         return mole_fracs, g_excess_total, g_mix_total, df
 
-    def plot(self, smiles_list, save_path=None):
+    def plot(self, smiles_list, temperature, save_path=None):
         plt.rcParams.update({
             "font.family": "serif",
             "font.serif": ["Times New Roman"],
             "mathtext.fontset": "stix",
             "font.size": 14
         })
-        mole_fracs, g_excess, g_mix, df = self.predict_ternary_surface(smiles_list)
+        mole_fracs, g_excess, g_mix, df = self.predict_ternary_surface(smiles_list, temperature)
         names = []
         for s in smiles_list:
             mol = Chem.MolFromSmiles(s)
@@ -170,7 +171,7 @@ class TernaryAnalyzer:
         ax2 = fig.add_subplot(122, projection='ternary')
         self._setup_ternary_axis(ax2, t, l, r, g_mix, names, 'Gibbs Energy of Mixing ( $\Delta_{mix}g / RT$ )')
 
-        plt.suptitle(f'{names[0]} / {names[1]} / {names[2]}', y=0.95)
+        plt.suptitle(f'{names[0]} / {names[1]} / {names[2]} at {temperature:.2f} K', y=0.95)
         
         if save_path:
             plt.savefig(save_path, dpi=300, bbox_inches='tight')

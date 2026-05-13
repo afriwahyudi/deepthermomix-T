@@ -30,7 +30,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="DTMPNN Training Script")
     
     # --- Data Paths ---
-    parser.add_argument('--components_csv', type=str, default='development/datasets/components.csv')
+    parser.add_argument('--components_csv', type=str, default='development/datasets/component_set_unified.csv')
     parser.add_argument('--raw_csv', type=str, required=True)
     parser.add_argument('--output_root', type=str, default='outputs/training')
     

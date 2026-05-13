@@ -100,7 +100,7 @@ class DeepThermoMix(nn.Module):
 
     def forward(self, comp_emb, mole_frac, component_batch_batch, temperature): 
         mole_frac_view = mole_frac.view(-1, 1)
-        temp_normalized = (temperature[component_batch_batch] / 273.15)  # [num_nodes, 1]
+        temp_normalized = (temperature[component_batch_batch] / 298.15)  # [num_nodes, 1]
         weighted_comp_emb = comp_emb * mole_frac_view
         mixture_state = scatter_add(weighted_comp_emb, component_batch_batch, dim=0)
         mixture_context = self.interaction_mlp(mixture_state)
@@ -118,7 +118,7 @@ class DeepThermoMix(nn.Module):
 
     def forward_ideal(self, comp_emb, mole_frac, component_batch_batch, temperature):
         mole_frac_view = mole_frac.view(-1, 1)
-        temp_normalized = (temperature[component_batch_batch] / 273.15)  # [num_nodes, 1]
+        temp_normalized = (temperature[component_batch_batch] / 298.15)  # [num_nodes, 1]
         pure_state = comp_emb
         pure_context = self.interaction_mlp(pure_state)
         gate_input = torch.cat([comp_emb,

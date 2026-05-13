@@ -142,7 +142,8 @@ if __name__ == "__main__":
     try:
         kill_all_aspen_processes()
         vle = AspenVLE()
-        temperature = 298.15
+
+        temperatures = [298.15, 323.15, 348.15, 373.15, 398.15]  # K
 
         systems = [
             # Series 1 (alcohols / water)
@@ -205,80 +206,85 @@ if __name__ == "__main__":
                          'COSMOSAC'
                          ]
 
-        print(f"Starting Batch Run for {len(systems)} systems...")
+        print(f"Starting Batch Run for {len(systems)} systems x {len(temperatures)} temperatures...")
 
-        for comp1, comp2 in systems:
-            print(f"\nProcessing system: {comp1}/{comp2}...")
-            for model in models_to_run:
-                try:
-                    target_model = model
-                    print(f"\n--- Processing {target_model} ---")
+        for temperature in temperatures:
+            print(f"\n{'='*60}")
+            print(f"Temperature: {temperature} K")
+            print(f"{'='*60}")
 
-                    base_dir = os.path.join(parent_dir, f'outputs/aspen/binary_results/{target_model}')
-                    csv_dir = os.path.join(base_dir, 'csv')
-                    fig_dir = os.path.join(base_dir, 'figures')
+            for comp1, comp2 in systems:
+                print(f"\nProcessing system: {comp1}/{comp2}...")
+                for model in models_to_run:
+                    try:
+                        target_model = model
+                        print(f"\n--- Processing {target_model} ---")
 
-                    os.makedirs(csv_dir, exist_ok=True)
-                    os.makedirs(fig_dir, exist_ok=True)
+                        base_dir = os.path.join(parent_dir, f'outputs/aspen/binary_results/{target_model}')
+                        csv_dir = os.path.join(base_dir, 'csv')
+                        fig_dir = os.path.join(base_dir, 'figures')
 
-                    df = vle.get_VLE_from_aspen([comp1, comp2], npoint=100, temperature=temperature, model_name=target_model)
+                        os.makedirs(csv_dir, exist_ok=True)
+                        os.makedirs(fig_dir, exist_ok=True)
 
-                    csv_path = os.path.join(csv_dir, f'{comp1}_{comp2}_{target_model}_vle.csv')
-                    df.to_csv(csv_path, index=False)
-                    print(f"Data saved to: {csv_path}")
+                        df = vle.get_VLE_from_aspen([comp1, comp2], npoint=100, temperature=temperature, model_name=target_model)
 
-                    plt.rcParams.update({
-                        "font.family": "serif",
-                        "font.serif": ["Times New Roman"],
-                        "mathtext.fontset": "stix"
-                    })
-                    fontsize = 14
-                    name1 = comp1
-                    name2 = comp2
-                    title_prefix = f'{comp1}/{comp2} ({target_model}) at {temperature} K'
+                        csv_path = os.path.join(csv_dir, f'{comp1}_{comp2}_{target_model}_{temperature}K_vle.csv')
+                        df.to_csv(csv_path, index=False)
+                        print(f"Data saved to: {csv_path}")
 
-                    fig, ax = plt.subplots(1, 3, figsize=(20, 6))
+                        plt.rcParams.update({
+                            "font.family": "serif",
+                            "font.serif": ["Times New Roman"],
+                            "mathtext.fontset": "stix"
+                        })
+                        fontsize = 14
+                        name1 = comp1
+                        name2 = comp2
+                        title_prefix = f'{comp1}/{comp2} ({target_model}) at {temperature} K'
 
-                    ax[0].plot(df['x1'], df['P'], 'b', marker='o', markersize=4, label='x (liquid)', linewidth=2.5)
-                    ax[0].plot(df['y1'], df['P'], 'r', marker='o', markersize=4, label='y (vapor)', linewidth=2.5)
-                    ax[0].set_xlabel(f'mol frac, {name1}', fontsize=fontsize)
-                    ax[0].set_ylabel('Pressure (bar)', fontsize=fontsize)
-                    ax[0].set_title(f'{title_prefix}: P-x-y Diagram', fontsize=fontsize)
-                    ax[0].set_xlim(0, 1)
-                    ax[0].legend(fontsize=fontsize)
-                    ax[0].tick_params(axis='both', which='major', labelsize=fontsize)
+                        fig, ax = plt.subplots(1, 3, figsize=(20, 6))
 
-                    ax[1].plot(df['x1'], df['ln_gamma1'], 'green', marker='o', markersize=4, label=f'ln $\\gamma$ {name1}', linewidth=2.5)
-                    ax[1].plot(df['x1'], df['ln_gamma2'], 'orange', marker='o', markersize=4, label=f'ln $\\gamma$ {name2}', linewidth=2.5)
-                    ax[1].set_xlabel(f'mol frac, {name1}', fontsize=fontsize)
-                    ax[1].set_ylabel('ln $\\gamma$', fontsize=fontsize)
-                    ax[1].set_title(f'{title_prefix}: Activity Coefficients', fontsize=fontsize)
-                    ax[1].set_xlim(0, 1)
-                    ax[1].legend(fontsize=fontsize)
-                    ax[1].tick_params(axis='both', which='major', labelsize=fontsize)
-                    ax[1].axhline(0, color='red', linewidth=1.0, linestyle='--')
+                        ax[0].plot(df['x1'], df['P'], 'b', marker='o', markersize=4, label='x (liquid)', linewidth=2.5)
+                        ax[0].plot(df['y1'], df['P'], 'r', marker='o', markersize=4, label='y (vapor)', linewidth=2.5)
+                        ax[0].set_xlabel(f'mol frac, {name1}', fontsize=fontsize)
+                        ax[0].set_ylabel('Pressure (bar)', fontsize=fontsize)
+                        ax[0].set_title(f'{title_prefix}: P-x-y Diagram', fontsize=fontsize)
+                        ax[0].set_xlim(0, 1)
+                        ax[0].legend(fontsize=fontsize)
+                        ax[0].tick_params(axis='both', which='major', labelsize=fontsize)
 
-                    ax[2].plot(df['x1'], df['g_mix_reduced'], 'purple', label='$g_{mix} / RT$ (Total)', linewidth=2.5)
-                    ax[2].plot(df['x1'], df['g_excess_reduced'], 'k--', label='$g^E / RT$ (Excess)', linewidth=2.0, alpha=0.7)
-                    ax[2].set_xlabel(f'mol frac, {name1}', fontsize=fontsize)
-                    ax[2].set_ylabel('Energy ($RT$)', fontsize=fontsize)
-                    ax[2].set_title(f'{title_prefix}: Gibbs Energy', fontsize=fontsize)
-                    ax[2].set_xlim(0, 1)
-                    ax[2].legend(loc='best', fontsize=fontsize)
-                    ax[2].tick_params(axis='both', which='major', labelsize=fontsize)
-                    ax[2].axhline(0, color='black', linewidth=0.5)
+                        ax[1].plot(df['x1'], df['ln_gamma1'], 'green', marker='o', markersize=4, label=f'ln $\\gamma$ {name1}', linewidth=2.5)
+                        ax[1].plot(df['x1'], df['ln_gamma2'], 'orange', marker='o', markersize=4, label=f'ln $\\gamma$ {name2}', linewidth=2.5)
+                        ax[1].set_xlabel(f'mol frac, {name1}', fontsize=fontsize)
+                        ax[1].set_ylabel('ln $\\gamma$', fontsize=fontsize)
+                        ax[1].set_title(f'{title_prefix}: Activity Coefficients', fontsize=fontsize)
+                        ax[1].set_xlim(0, 1)
+                        ax[1].legend(fontsize=fontsize)
+                        ax[1].tick_params(axis='both', which='major', labelsize=fontsize)
+                        ax[1].axhline(0, color='red', linewidth=1.0, linestyle='--')
 
-                    plt.tight_layout()
+                        ax[2].plot(df['x1'], df['g_mix_reduced'], 'purple', label='$g_{mix} / RT$ (Total)', linewidth=2.5)
+                        ax[2].plot(df['x1'], df['g_excess_reduced'], 'k--', label='$g^E / RT$ (Excess)', linewidth=2.0, alpha=0.7)
+                        ax[2].set_xlabel(f'mol frac, {name1}', fontsize=fontsize)
+                        ax[2].set_ylabel('Energy ($RT$)', fontsize=fontsize)
+                        ax[2].set_title(f'{title_prefix}: Gibbs Energy', fontsize=fontsize)
+                        ax[2].set_xlim(0, 1)
+                        ax[2].legend(loc='best', fontsize=fontsize)
+                        ax[2].tick_params(axis='both', which='major', labelsize=fontsize)
+                        ax[2].axhline(0, color='black', linewidth=0.5)
 
-                    plot_path = os.path.join(fig_dir, f'{comp1}_{comp2}_{target_model}_plots.png')
-                    plt.savefig(plot_path, dpi=300)
-                    print(f"Plot saved to: {plot_path}")
+                        plt.tight_layout()
 
-                    plt.close(fig)
-                except Exception as e:
-                    print(f"Error processing {comp1}/{comp2} with model {target_model}: {e}")
-                    kill_all_aspen_processes()
-                    continue
+                        plot_path = os.path.join(fig_dir, f'{comp1}_{comp2}_{target_model}_{temperature}K_plots.png')
+                        plt.savefig(plot_path, dpi=300)
+                        print(f"Plot saved to: {plot_path}")
+
+                        plt.close(fig)
+                    except Exception as e:
+                        print(f"Error processing {comp1}/{comp2} with model {target_model} at {temperature} K: {e}")
+                        kill_all_aspen_processes()
+                        continue
     finally:
         end_wall = time.time()
         end_perf = time.perf_counter()

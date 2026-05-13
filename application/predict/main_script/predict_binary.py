@@ -17,13 +17,13 @@ def parse_args():
                         help='SMILES string for component 1')
     parser.add_argument('--smiles2', type=str, required=True, 
                         help='SMILES string for component 2')
-    parser.add_argument('--temp', type=float, default=298.15, 
+    parser.add_argument('--temp', type=float,
                         help='Temperature in Kelvin')
     parser.add_argument('--model_dir', type=str, required=True,
                         help='Path to the trained .pt model file')
     parser.add_argument('--constraint_type', type=str, default='hard',
                         help='Constraint type used during training')
-    parser.add_argument('--components_csv', type=str, default='development/datasets/components.csv', 
+    parser.add_argument('--components_csv', type=str, default='development/datasets/component_set_unified.csv', 
                         help='Path to components database')
     parser.add_argument('--output_dir', type=str, default=None,
                         help='Output directory for the results')

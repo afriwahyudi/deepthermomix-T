@@ -20,13 +20,13 @@ def parse_args():
                         help='SMILES Right')
     parser.add_argument('--smiles3', type=str, required=True, 
                         help='SMILES Top')
-    parser.add_argument('--temp', type=float, default=298.15, 
+    parser.add_argument('--temp', type=float,
                         help='Temperature in Kelvin')
     parser.add_argument('--model_dir', type=str, default=None,
                         help='Path to the trained .pt model file')
     parser.add_argument('--constraint_type', type=str, default='hard',
                         help='Constraint type used during training')
-    parser.add_argument('--components_csv', type=str, default='development/datasets/components.csv', 
+    parser.add_argument('--components_csv', type=str, default='development/datasets/component_set_unified.csv', 
                         help='Path to components database')
     parser.add_argument('--output_dir', type=str, default=None,
                         help='Output directory for the results')
@@ -51,12 +51,14 @@ def main():
     component_names = [analyzer.smiles_map.get(s, s) for s in smiles_list] 
     base_filename = '_'.join(component_names)
     
-    png_path = os.path.join(args.output_dir, base_filename + '.png') 
-    csv_path = os.path.join(args.output_dir, base_filename + '.csv')
+    os.makedirs(os.path.join(args.output_dir, 'png'), exist_ok=True)
+    os.makedirs(os.path.join(args.output_dir, 'csv'), exist_ok=True)
+    png_path = os.path.join(args.output_dir, 'png', base_filename + f'_{args.temp:.2f}K.png')
+    csv_path = os.path.join(args.output_dir, 'csv', base_filename + f'_{args.temp:.2f}K.csv')
     
     os.makedirs(os.path.dirname(png_path), exist_ok=True) 
      
-    df = analyzer.plot(smiles_list, save_path=png_path) 
+    df = analyzer.plot(smiles_list, args.temp, save_path=png_path) 
     
     df.to_csv(csv_path, index=False)
     print(f"Data saved to {csv_path}")

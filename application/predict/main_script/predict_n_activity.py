@@ -16,13 +16,15 @@ def parse_args():
                         help='List of SMILES strings (space separated)')
     parser.add_argument('--target_idx', type=int, default=0, 
                         help='Index of the component to vary (0-based)')
+    parser.add_argument('--temp', type=float, default=298.15,
+                        help='Temperature in Kelvin')
     parser.add_argument('--steps', type=int, default=50, 
                         help='Number of steps in the composition sweep')
     parser.add_argument('--model_dir', type=str,
                         help='Path to the trained .pt model file')
     parser.add_argument('--constraint_type', type=str, default='hard',
                         help='Constraint type used during training')
-    parser.add_argument('--components_csv', type=str, default='development/datasets/components.csv', 
+    parser.add_argument('--components_csv', type=str, default='development/datasets/component_set_unified.csv', 
                         help='Path to components database')
     parser.add_argument('--output_dir', type=str,
                         help='Output directory for the results')
@@ -61,6 +63,7 @@ def main():
     analyzer.plot_sweep(
         args.smiles, 
         target_idx=args.target_idx, 
+        temperature=args.temp,
         steps=args.steps, 
         save_path=output_path
     )
