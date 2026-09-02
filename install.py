@@ -64,14 +64,14 @@ def main():
             )
         
         # GPU
-        env_name = "deepthermomix-gpu"
+        env_name = "nonisothermal-deepthermomix-gpu"
         conda_pkgs = ["nomkl"] + BASE_CONDA_PKGS # add nomkl
         torch_flags = ["--index-url", "https://download.pytorch.org/whl/cu129"]
         pyg_flags = ["-f", "https://data.pyg.org/whl/torch-2.8.0+cu129.html"]
         
     else:
         # CPU
-        env_name = "deepthermomix-cpu"
+        env_name = "nonisothermal-deepthermomix-cpu"
         conda_pkgs = ["nomkl"] + BASE_CONDA_PKGS # add nomkl
         torch_flags = [] # Default PyPI for CPU
         pyg_flags = ["-f", "https://data.pyg.org/whl/torch-2.8.0+cpu.html"]
@@ -82,12 +82,10 @@ def main():
     run_command(pip_cmd + TORCH_PKGS + torch_flags, "installing torch stack...")
     run_command(pip_cmd + PYG_PKGS + pyg_flags, "installing graph neural network stack...")
     run_command(pip_cmd + BASE_PIP_PKGS, "installing Optuna...")
-    run_command(pip_cmd + ["-e", "."], "installing 'deepthermomix' package...")
+    run_command(pip_cmd + ["-e", "."], "installing 'nonisothermal-deepthermomix' package...")
 
     print(f"\nINSTALLATION COMPLETE! Environment: {env_name}")
     print(f"to start:  conda activate {env_name}")
 
-# SWITCHING ISOTHERMAL/NON-ISOTHERMAL mode:
-# pip install -e "D:\aw_workspace\main_project\deepthermomix-T" or pip install -e "D:\aw_workspace\main_project\deepthermomix"
 if __name__ == "__main__":
     main()
